@@ -51,7 +51,11 @@ static int init_rfkill() {
     int fd;
     int sz;
     int id;
-    for (id = 0; ; id++) {
+    for (id = 1; ; id++) {
+        if (id > 1000)
+        {
+            return -1;
+        }
         snprintf(path, sizeof(path), "/sys/class/rfkill/rfkill%d/type", id);
         fd = open(path, O_RDONLY);
         if (fd < 0) {
