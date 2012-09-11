@@ -56,14 +56,17 @@ static int init_rfkill() {
         fd = open(path, O_RDONLY);
         if (fd < 0) {
             LOGW("open(%s) failed: %s (%d)\n", path, strerror(errno), errno);
-            return -1;
-        }
-        sz = read(fd, &buf, sizeof(buf));
-        close(fd);
-        if (sz >= 9 && memcmp(buf, "bluetooth", 9) == 0) {
-            rfkill_id = id;
-            break;
-        }
+	    close(fd); 
+	    if (id > 100)
+	      return -1;
+        } else {
+	  sz = read(fd, &buf, sizeof(buf));
+	  close(fd);
+	  if (sz >= 9 && memcmp(buf, "bluetooth", 9) == 0) {
+	      rfkill_id = id;
+	      break;
+	  }
+	}
     }
 
     asprintf(&rfkill_state_path, "/sys/class/rfkill/rfkill%d/state", rfkill_id);
@@ -75,6 +78,7 @@ static int check_bluetooth_power() {
     int fd = -1;
     int ret = -1;
     char buffer;
+    rfkill_id = -1;
 
     if (rfkill_id == -1) {
         if (init_rfkill()) goto out;
@@ -112,6 +116,7 @@ static int set_bluetooth_power(int on) {
     int fd = -1;
     int ret = -1;
     const char buffer = (on ? '1' : '0');
+    rfkill_id = -1;
 
     if (rfkill_id == -1) {
         if (init_rfkill()) goto out;
